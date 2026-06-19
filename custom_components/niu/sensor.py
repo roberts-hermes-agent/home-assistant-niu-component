@@ -27,10 +27,41 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
     scooter_id = niu_auth[CONF_SCOOTER_ID]
     sensors_selected = niu_auth[CONF_SENSORS]
 
-    api = NiuApi.from_hass(hass, username, password, scooter_id)
+    api = NiuApi(username, password, scooter_id)
     await hass.async_add_executor_job(api.initApi)
 
-    # add sensors
+    # add sensors; expose KQi ride-stat sensors automatically for kick scooters
+    sensors_selected = list(sensors_selected)
+    if getattr(api, "is_kqi", False):
+        for sensor in (
+            "KqiMileageThisWeek",
+            "KqiMileageTotal",
+            "KqiRideCountTotal",
+            "KqiRidingMinutesTotal",
+            "KqiSharingCostTotal",
+            "KqiSharingSavingsTotal",
+            "KqiAmortizationPercent",
+            "KqiDistanceTotalFromTracks",
+            "KqiRideCountThisMonth",
+            "KqiRidingMinutesThisMonth",
+            "KqiDistanceThisMonth",
+            "KqiSharingCostThisMonth",
+            "KqiLongestRideDistance",
+            "KqiLongestRideDuration",
+            "KqiAverageRideDistance",
+            "KqiAverageRideDuration",
+            "KqiPowerConsumptionTotal",
+            "KqiLastRidePowerConsumption",
+            "KqiMedicalUseDays",
+            "KqiMedicalScore",
+            "KqiKeyNfcCount",
+            "KqiKeyWalletCount",
+            "KqiKeyUserCount",
+            "KqiKeyPasswordCount",
+        ):
+            if sensor not in sensors_selected:
+                sensors_selected.append(sensor)
+
     devices = []
     for sensor in sensors_selected:
         if sensor != "LastTrackThumb":
@@ -117,40 +148,30 @@ class NiuSensor(Entity):
             "identifiers": {("niu", device_name)},
             "name": device_name,
             "manufacturer": "Niu",
-            "model": 1.0,
+            "model": "1.0",
         }
 
     @property
     def extra_state_attributes(self):
         if self._sensor_grp == SENSOR_TYPE_MOTO and self._id_name == "isConnected":
-            attrs = {
-                "bmsId_a": self._api.getDataBatA("bmsId"),
+            return {
+                "bmsId": self._api.getDataBat("bmsId"),
                 "latitude": self._api.getDataPos("lat"),
                 "longitude": self._api.getDataPos("lng"),
                 "gsm": self._api.getDataMoto("gsm"),
                 "gps": self._api.getDataMoto("gps"),
                 "time": self._api.getDataDist("time"),
                 "range": self._api.getDataMoto("estimatedMileage"),
-                "battery_a": self._api.getDataBatA("batteryCharging"),
-                "battery_grade_a": self._api.getDataBatA("gradeBattery"),
+                "battery": self._api.getDataBat("batteryCharging"),
+                "battery_grade": self._api.getDataBat("gradeBattery"),
                 "centre_ctrl_batt": self._api.getDataMoto("centreCtrlBattery"),
             }
-            if self._api.hasSecondBattery():
-                attrs["bmsId_b"] = self._api.getDataBatB("bmsId")
-                attrs["battery_b"] = self._api.getDataBatB("batteryCharging")
-                attrs["battery_grade_b"] = self._api.getDataBatB("gradeBattery")
-            return attrs
 
     @Throttle(timedelta(minutes=15))
     async def async_update(self):
         if self._sensor_grp == SENSOR_TYPE_BAT:
             await self._hass.async_add_executor_job(self._api.updateBat)
-            self._state = self._api.getDataBatA(self._id_name)
-            
-        if self._sensor_grp == SENSOR_TYPE_BAT2:
-            await self._hass.async_add_executor_job(self._api.updateBat)
-            if self._api.hasSecondBattery():
-                self._state = self._api.getDataBatB(self._id_name)
+            self._state = self._api.getDataBat(self._id_name)
 
         elif self._sensor_grp == SENSOR_TYPE_MOTO:
             await self._hass.async_add_executor_job(self._api.updateMoto)
@@ -171,3 +192,19 @@ class NiuSensor(Entity):
         elif self._sensor_grp == SENSOR_TYPE_TRACK:
             await self._hass.async_add_executor_job(self._api.updateTrackInfo)
             self._state = self._api.getDataTrack(self._id_name)
+
+        elif self._sensor_grp == SENSOR_TYPE_RIDESTAT:
+            await self._hass.async_add_executor_job(self._api.updateRideStat)
+            self._state = self._api.getDataRideStat(self._id_name)
+
+        elif self._sensor_grp == SENSOR_TYPE_TRACKSUMMARY:
+            await self._hass.async_add_executor_job(self._api.updateTrackSummary)
+            self._state = self._api.getDataTrackSummary(self._id_name)
+
+        elif self._sensor_grp == SENSOR_TYPE_MEDICAL:
+            await self._hass.async_add_executor_job(self._api.updateMedicalRecord)
+            self._state = self._api.getDataMedicalRecord(self._id_name)
+
+        elif self._sensor_grp == SENSOR_TYPE_KEYSTATS:
+            await self._hass.async_add_executor_job(self._api.updateKeyShareStats)
+            self._state = self._api.getDataKeyShareStats(self._id_name)

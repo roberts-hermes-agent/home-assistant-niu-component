@@ -6,6 +6,10 @@ MOTOR_INDEX_API_URI = "/v5/scooter/motor_data/index_info"
 MOTOINFO_LIST_API_URI = "/v5/scooter/list"
 MOTOINFO_ALL_API_URI = "/motoinfo/overallTally"
 TRACK_LIST_API_URI = "/v5/track/list/v2"
+KQI_TRACK_LIST_API_URI = "/v5/k/track_list"
+KQI_RIDE_STAT_API_URI = "/v5/car_condition/ride_stat"
+KQI_MEDICAL_RECORD_API_URI = "/v5/scooter/medical_record"
+KQI_KEY_SHARE_STATISTICS_API_URI = "/v5/scooter/key/share_statistics"
 # FIRMWARE_BAS_URL = '/motorota/getfirmwareversion'
 
 DOMAIN = "niu"
@@ -18,23 +22,24 @@ CONF_SENSORS = "sensors_selected"
 DEFAULT_SCOOTER_ID = 0
 
 SENSOR_TYPE_BAT = "BAT"
-SENSOR_TYPE_BAT2 = "BAT2"
 SENSOR_TYPE_MOTO = "MOTO"
 SENSOR_TYPE_DIST = "DIST"
 SENSOR_TYPE_OVERALL = "TOTAL"
 SENSOR_TYPE_POS = "POSITION"
 # SENSOR_TYPE_SYSTEM = 'SYSTEM'
 SENSOR_TYPE_TRACK = "TRACK"
+SENSOR_TYPE_RIDESTAT = "RIDESTAT"
+SENSOR_TYPE_TRACKSUMMARY = "TRACKSUMMARY"
+SENSOR_TYPE_MEDICAL = "MEDICAL"
+SENSOR_TYPE_KEYSTATS = "KEYSTATS"
 
 AVAILABLE_SENSORS = [
-    "BatteryChargeA",
-    "BatteryChargeB",
+    "BatteryCharge",
     "Isconnected",
     "TimesCharged",
     "temperatureDesc",
     "Temperature",
-    "BatteryGradeA",
-    "BatteryGradeB",
+    "BatteryGrade",
     "CurrentSpeed",
     "ScooterConnected",
     "IsCharging",
@@ -55,6 +60,30 @@ AVAILABLE_SENSORS = [
     "LastTrackAverageSpeed",
     "LastTrackRidingtime",
     "LastTrackThumb",
+    "KqiMileageThisWeek",
+    "KqiMileageTotal",
+    "KqiRideCountTotal",
+    "KqiRidingMinutesTotal",
+    "KqiSharingCostTotal",
+    "KqiSharingSavingsTotal",
+    "KqiAmortizationPercent",
+    "KqiDistanceTotalFromTracks",
+    "KqiRideCountThisMonth",
+    "KqiRidingMinutesThisMonth",
+    "KqiDistanceThisMonth",
+    "KqiSharingCostThisMonth",
+    "KqiLongestRideDistance",
+    "KqiLongestRideDuration",
+    "KqiAverageRideDistance",
+    "KqiAverageRideDuration",
+    "KqiPowerConsumptionTotal",
+    "KqiLastRidePowerConsumption",
+    "KqiMedicalUseDays",
+    "KqiMedicalScore",
+    "KqiKeyNfcCount",
+    "KqiKeyWalletCount",
+    "KqiKeyUserCount",
+    "KqiKeyPasswordCount",
 ]
 
 
@@ -77,14 +106,12 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
             [
                 vol.In(
                     [
-                        "BatteryChargeA",
-                        "BatteryChargeB",
+                        "BatteryCharge",
                         "Isconnected",
                         "TimesCharged",
                         "temperatureDesc",
                         "Temperature",
-                        "BatteryGradeA",
-                        "BatteryGradeB",
+                        "BatteryGrade",
                         "CurrentSpeed",
                         "ScooterConnected",
                         "IsCharging",
@@ -105,6 +132,30 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
                         "LastTrackAverageSpeed",
                         "LastTrackRidingtime",
                         "LastTrackThumb",
+                        "KqiMileageThisWeek",
+                        "KqiMileageTotal",
+                        "KqiRideCountTotal",
+                        "KqiRidingMinutesTotal",
+                        "KqiSharingCostTotal",
+                        "KqiSharingSavingsTotal",
+                        "KqiAmortizationPercent",
+                        "KqiDistanceTotalFromTracks",
+                        "KqiRideCountThisMonth",
+                        "KqiRidingMinutesThisMonth",
+                        "KqiDistanceThisMonth",
+                        "KqiSharingCostThisMonth",
+                        "KqiLongestRideDistance",
+                        "KqiLongestRideDuration",
+                        "KqiAverageRideDistance",
+                        "KqiAverageRideDuration",
+                        "KqiPowerConsumptionTotal",
+                        "KqiLastRidePowerConsumption",
+                        "KqiMedicalUseDays",
+                        "KqiMedicalScore",
+                        "KqiKeyNfcCount",
+                        "KqiKeyWalletCount",
+                        "KqiKeyUserCount",
+                        "KqiKeyPasswordCount",
                     ]
                 )
             ],
@@ -113,19 +164,11 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
 )
 
 SENSOR_TYPES = {
-    "BatteryChargeA": [
-        "battery_charge_a",
+    "BatteryCharge": [
+        "battery_charge",
         "%",
         "batteryCharging",
         SENSOR_TYPE_BAT,
-        "battery",
-        "mdi:battery-charging-50",
-    ],
-    "BatteryChargeB": [
-        "battery_charge_b",
-        "%",
-        "batteryCharging",
-        SENSOR_TYPE_BAT2,
         "battery",
         "mdi:battery-charging-50",
     ],
@@ -161,19 +204,11 @@ SENSOR_TYPES = {
         "temperature",
         "mdi:thermometer",
     ],
-    "BatteryGradeA": [
-        "battery_grade_a",
+    "BatteryGrade": [
+        "battery_grade",
         "%",
         "gradeBattery",
         SENSOR_TYPE_BAT,
-        "battery",
-        "mdi:car-battery",
-    ],
-    "BatteryGradeB": [
-        "battery_grade_b",
-        "%",
-        "gradeBattery",
-        SENSOR_TYPE_BAT2,
         "battery",
         "mdi:car-battery",
     ],
@@ -308,5 +343,197 @@ SENSOR_TYPES = {
         SENSOR_TYPE_TRACK,
         "none",
         "mdi:map",
+    ],
+    "KqiMileageThisWeek": [
+        "kqi_mileage_this_week",
+        "m",
+        "mileage_this_week",
+        SENSOR_TYPE_RIDESTAT,
+        "none",
+        "mdi:map-marker-distance",
+    ],
+    "KqiMileageTotal": [
+        "kqi_mileage_total",
+        "m",
+        "mileage_total",
+        SENSOR_TYPE_RIDESTAT,
+        "none",
+        "mdi:map-marker-distance",
+    ],
+    "KqiRideCountTotal": [
+        "kqi_ride_count_total",
+        "rides",
+        "ride_count_total",
+        SENSOR_TYPE_TRACKSUMMARY,
+        "none",
+        "mdi:counter",
+    ],
+    "KqiRidingMinutesTotal": [
+        "kqi_riding_minutes_total",
+        "min",
+        "riding_minutes_total",
+        SENSOR_TYPE_TRACKSUMMARY,
+        "none",
+        "mdi:timer-outline",
+    ],
+    "KqiSharingCostTotal": [
+        "kqi_sharing_cost_total",
+        "€",
+        "sharing_cost_total",
+        SENSOR_TYPE_TRACKSUMMARY,
+        "monetary",
+        "mdi:cash-multiple",
+    ],
+    "KqiSharingSavingsTotal": [
+        "kqi_sharing_savings_total",
+        "€",
+        "sharing_savings_total",
+        SENSOR_TYPE_TRACKSUMMARY,
+        "monetary",
+        "mdi:cash-plus",
+    ],
+    "KqiAmortizationPercent": [
+        "kqi_amortization_percent",
+        "%",
+        "amortization_percent",
+        SENSOR_TYPE_TRACKSUMMARY,
+        "none",
+        "mdi:percent-circle",
+    ],
+    "KqiDistanceTotalFromTracks": [
+        "kqi_distance_total_from_tracks",
+        "km",
+        "distance_total_from_tracks",
+        SENSOR_TYPE_TRACKSUMMARY,
+        "none",
+        "mdi:map-marker-distance",
+    ],
+    "KqiRideCountThisMonth": [
+        "kqi_ride_count_this_month",
+        "rides",
+        "ride_count_this_month",
+        SENSOR_TYPE_TRACKSUMMARY,
+        "none",
+        "mdi:calendar-month",
+    ],
+    "KqiRidingMinutesThisMonth": [
+        "kqi_riding_minutes_this_month",
+        "min",
+        "riding_minutes_this_month",
+        SENSOR_TYPE_TRACKSUMMARY,
+        "none",
+        "mdi:timer-outline",
+    ],
+    "KqiDistanceThisMonth": [
+        "kqi_distance_this_month",
+        "km",
+        "distance_this_month",
+        SENSOR_TYPE_TRACKSUMMARY,
+        "none",
+        "mdi:map-marker-distance",
+    ],
+    "KqiSharingCostThisMonth": [
+        "kqi_sharing_cost_this_month",
+        "€",
+        "sharing_cost_this_month",
+        SENSOR_TYPE_TRACKSUMMARY,
+        "monetary",
+        "mdi:cash-clock",
+    ],
+    "KqiLongestRideDistance": [
+        "kqi_longest_ride_distance",
+        "km",
+        "longest_ride_distance",
+        SENSOR_TYPE_TRACKSUMMARY,
+        "none",
+        "mdi:map-marker-distance",
+    ],
+    "KqiLongestRideDuration": [
+        "kqi_longest_ride_duration",
+        "min",
+        "longest_ride_duration",
+        SENSOR_TYPE_TRACKSUMMARY,
+        "none",
+        "mdi:timer-star-outline",
+    ],
+    "KqiAverageRideDistance": [
+        "kqi_average_ride_distance",
+        "km",
+        "average_ride_distance",
+        SENSOR_TYPE_TRACKSUMMARY,
+        "none",
+        "mdi:chart-bell-curve",
+    ],
+    "KqiAverageRideDuration": [
+        "kqi_average_ride_duration",
+        "min",
+        "average_ride_duration",
+        SENSOR_TYPE_TRACKSUMMARY,
+        "none",
+        "mdi:chart-bell-curve",
+    ],
+    "KqiPowerConsumptionTotal": [
+        "kqi_power_consumption_total",
+        "",
+        "power_consumption_total",
+        SENSOR_TYPE_TRACKSUMMARY,
+        "none",
+        "mdi:flash",
+    ],
+    "KqiLastRidePowerConsumption": [
+        "kqi_last_ride_power_consumption",
+        "",
+        "last_ride_power_consumption",
+        SENSOR_TYPE_TRACKSUMMARY,
+        "none",
+        "mdi:flash-outline",
+    ],
+    "KqiMedicalUseDays": [
+        "kqi_medical_use_days",
+        "days",
+        "use_day",
+        SENSOR_TYPE_MEDICAL,
+        "none",
+        "mdi:calendar-check",
+    ],
+    "KqiMedicalScore": [
+        "kqi_medical_score",
+        "",
+        "score",
+        SENSOR_TYPE_MEDICAL,
+        "none",
+        "mdi:heart-pulse",
+    ],
+    "KqiKeyNfcCount": [
+        "kqi_key_nfc_count",
+        "keys",
+        "nfc_num",
+        SENSOR_TYPE_KEYSTATS,
+        "none",
+        "mdi:nfc",
+    ],
+    "KqiKeyWalletCount": [
+        "kqi_key_wallet_count",
+        "keys",
+        "wallet_key_num",
+        SENSOR_TYPE_KEYSTATS,
+        "none",
+        "mdi:wallet",
+    ],
+    "KqiKeyUserCount": [
+        "kqi_key_user_count",
+        "users",
+        "user_num",
+        SENSOR_TYPE_KEYSTATS,
+        "none",
+        "mdi:account-key",
+    ],
+    "KqiKeyPasswordCount": [
+        "kqi_key_password_count",
+        "keys",
+        "password_num",
+        SENSOR_TYPE_KEYSTATS,
+        "none",
+        "mdi:form-textbox-password",
     ],
 }

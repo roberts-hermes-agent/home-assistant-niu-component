@@ -14,14 +14,9 @@ _LOGGER = logging.getLogger(__name__)
 # For your initial PR, limit it to 1 platform.
 PLATFORMS = ["sensor"]
 
-async def async_setup(hass: HomeAssistant, config: dict) -> bool:
-    """Set up the Niu component."""
-    hass.data.setdefault(DOMAIN, {})
-    return True
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Niu Smart Plug from a config entry."""
-    hass.data[DOMAIN][entry.entry_id] = {}
 
     niu_auth = entry.data.get(CONF_AUTH, None)
     if niu_auth == None:
@@ -32,10 +27,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _LOGGER.error("You did NOT selected any sensor... cant setup the integration..")
         return False
 
-    if "LastTrackThumb" in sensors_selected:
-        PLATFORMS.append("camera")
-
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    platforms = ["sensor"]
+    await hass.config_entries.async_forward_entry_setups(entry, platforms)
 
     return True
 
